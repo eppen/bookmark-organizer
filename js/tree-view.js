@@ -92,7 +92,7 @@ export class TreeView {
       row.classList.add('highlight');
     }
 
-    row.style.paddingLeft = `${8 + depth * 16}px`;
+    row.style.paddingLeft = `${8 + depth * 12}px`;
 
     const folder = isFolder(node);
     const hasChildren = folder && (node.children?.length || 0) > 0;
