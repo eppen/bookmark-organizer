@@ -566,6 +566,7 @@ async function runLinkCheck(folderId, panelEl, onDone) {
     });
 
     const fail = results.filter((r) => r.status === 'fail');
+    const uncertain = results.filter((r) => r.status === 'uncertain');
     const redirect = results.filter((r) => r.status === 'redirect');
     const ok = results.filter((r) => r.status === 'ok');
 
@@ -573,6 +574,7 @@ async function runLinkCheck(folderId, panelEl, onDone) {
       <div class="stat-row">
         <span>正常 ${ok.length}</span>
         <span>重定向 ${redirect.length}</span>
+        <span>不确定 ${uncertain.length}</span>
         <span>失败 ${fail.length}</span>
       </div>
       <table class="table">
@@ -580,23 +582,26 @@ async function runLinkCheck(folderId, panelEl, onDone) {
         <tbody></tbody>
       </table>`;
     const tbody = resultBox.querySelector('tbody');
-    const ordered = [...fail, ...redirect, ...ok];
+    const ordered = [...fail, ...uncertain, ...redirect, ...ok];
+    const statusUi = {
+      ok: { badge: 'ok', label: '正常' },
+      redirect: { badge: 'redirect', label: '重定向' },
+      uncertain: { badge: 'uncertain', label: '不确定' },
+      fail: { badge: 'fail', label: '失败' }
+    };
     for (const r of ordered) {
       const tr = document.createElement('tr');
-      const badge =
-        r.status === 'ok' ? 'ok' : r.status === 'redirect' ? 'redirect' : 'fail';
-      const label =
-        r.status === 'ok' ? '正常' : r.status === 'redirect' ? '重定向' : '失败';
+      const ui = statusUi[r.status] || statusUi.fail;
       tr.innerHTML = `
         <td>${r.status === 'fail' ? `<input type="checkbox" checked data-fail data-id="${r.id}" />` : ''}</td>
-        <td><span class="badge ${badge}">${label}</span></td>
+        <td><span class="badge ${ui.badge}">${ui.label}</span></td>
         <td><div>${escapeHtml(r.title || '')}</div><div class="card-meta">${escapeHtml(r.url)}</div></td>
         <td class="card-meta">${escapeHtml(r.reason || (r.finalUrl && r.finalUrl !== r.url ? r.finalUrl : `HTTP ${r.code || ''}`))}</td>`;
       tbody.appendChild(tr);
     }
     el.querySelector('#lcDelete').disabled = fail.length === 0;
     if (onDone) onDone(results);
-    toast(`检测完成：失败 ${fail.length}`);
+    toast(`检测完成：失败 ${fail.length}，不确定 ${uncertain.length}`);
   } catch (e) {
     toast(e.message || '检测失败', 'error');
   } finally {

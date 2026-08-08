@@ -260,7 +260,7 @@ button.active-tab {
   line-height: 1;
 }
 
-.tree-twistie.empty { visibility: hidden; }
+.tree-twistie.empty { display: none; }
 .tree-icon {
   width: 14px;
   height: 14px;
@@ -431,6 +431,7 @@ button.active-tab {
 .badge.ok { color: var(--ok); border-color: var(--ok-border); }
 .badge.fail { color: var(--danger-text); border-color: var(--danger-border); }
 .badge.redirect { color: var(--warn); border-color: var(--warn-border); }
+.badge.uncertain { color: var(--warn); border-color: var(--warn-border); }
 
 .context-menu {
   position: fixed;

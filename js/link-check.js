@@ -38,6 +38,22 @@ async function checkOne(url, timeoutMs) {
         finalUrl
       };
     }
+    if (res.status === 403) {
+      return {
+        status: 'uncertain',
+        code: res.status,
+        finalUrl,
+        reason: 'HTTP 403（可能被拦截）'
+      };
+    }
+    if (res.status === 429) {
+      return {
+        status: 'uncertain',
+        code: res.status,
+        finalUrl,
+        reason: 'HTTP 429（限流）'
+      };
+    }
     return { status: 'fail', code: res.status, finalUrl, reason: `HTTP ${res.status}` };
   } catch (e) {
     const reason = e.name === 'AbortError' ? '超时' : (e.message || '网络错误');
