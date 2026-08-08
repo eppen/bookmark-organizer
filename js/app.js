@@ -369,23 +369,47 @@ function renderRulesPanel() {
 
 /* ---- AI ---- */
 
+/** Folders treated as unsorted holding areas */
+const UNCLASSIFIED_FOLDER_NAMES = new Set(['未分类标签', '新文件夹']);
+
+function isUnclassifiedFolderName(name) {
+  if (!name) return false;
+  if (UNCLASSIFIED_FOLDER_NAMES.has(name)) return true;
+  // Chrome/OS duplicates: 新文件夹 (1), 新文件夹 (2), …
+  return /^新文件夹(?:\s*\(\d+\))?$/.test(name) || /^未分类标签(?:\s*\(\d+\))?$/.test(name);
+}
+
+/** System-root direct bookmarks, or under「未分类标签」/「新文件夹」 */
+function isUnclassifiedBookmark(b) {
+  if (!b?.url) return false;
+  if (b.parentId === '1' || b.parentId === '2' || b.parentId === '3') return true;
+  return (b.pathLabel || '').split(' / ').some(isUnclassifiedFolderName);
+}
+
+function collectUnclassifiedBookmarks(list = state.flat.bookmarks) {
+  return list.filter(isUnclassifiedBookmark);
+}
+
 function renderAiPanel() {
   const el = document.getElementById('panel-ai');
   const hasKey = Boolean(state.settings?.apiKey);
+  const unclassifiedCount = collectUnclassifiedBookmarks().length;
   el.innerHTML = `
     <h2>AI 智能分类</h2>
-    <p class="muted">使用 OpenAI 兼容 API 批量建议文件夹路径，确认后再写入。请先在设置中配置 API。</p>
+    <p class="muted">使用 OpenAI 兼容 API 批量建议文件夹路径，确认后再写入。默认只分析未分类书签：系统根下直挂，以及名为「未分类标签」「新文件夹」的文件夹内书签。请先在设置中配置 API。</p>
     <div class="stat-row">
       <span>API: ${hasKey ? escapeHtml(maskKey(state.settings.apiKey)) : '未配置'}</span>
       <span>模型: ${escapeHtml(state.settings?.model || '-')}</span>
-      <span>待分类书签: ${state.flat.bookmarks.length}</span>
+      <span>待分类书签: ${unclassifiedCount}</span>
     </div>
     <div class="panel-toolbar">
       <label>范围
         <select id="aiScope">
-          <option value="bar">书签栏及其子项</option>
-          <option value="selected">当前选中文件夹</option>
-          <option value="all">全部书签</option>
+          <option value="unclassified" selected>仅未分类</option>
+          <option value="bar">书签栏下未分类</option>
+          <option value="selected">当前选中下未分类</option>
+          <option value="all">全部未分类</option>
+          <option value="force">含已分类（强制）</option>
         </select>
       </label>
       <button type="button" class="primary" id="aiRun" ${hasKey ? '' : 'disabled'}>开始分析</button>
@@ -400,16 +424,30 @@ function renderAiPanel() {
 
   el.querySelector('#aiRun').onclick = async () => {
     const scope = el.querySelector('#aiScope').value;
-    let bookmarks = state.flat.bookmarks;
-    if (scope === 'bar') {
-      bookmarks = collectBookmarksUnder('1');
+    let bookmarks;
+    if (scope === 'unclassified' || scope === 'all') {
+      bookmarks = collectUnclassifiedBookmarks();
+    } else if (scope === 'bar') {
+      bookmarks = collectUnclassifiedBookmarks(collectBookmarksUnder('1'));
     } else if (scope === 'selected') {
       const id = treeView.getSelected()?.id || state.selectedFolderId || '1';
-      bookmarks = collectBookmarksUnder(BM.isFolder(treeView.getNode(id) || {}) ? id : '1');
+      const folderId = BM.isFolder(treeView.getNode(id) || {}) ? id : '1';
+      // Direct children only when folder is a system root; otherwise unclassified under that subtree
+      if (folderId === '1' || folderId === '2' || folderId === '3') {
+        bookmarks = collectUnclassifiedBookmarks(
+          (await BM.getChildren(folderId)).filter((n) => n.url)
+        );
+      } else {
+        bookmarks = collectUnclassifiedBookmarks(collectBookmarksUnder(folderId));
+      }
+    } else if (scope === 'force') {
+      bookmarks = state.flat.bookmarks;
+    } else {
+      bookmarks = collectUnclassifiedBookmarks();
     }
 
     if (!bookmarks.length) {
-      toast('没有可分析的书签');
+      toast(scope === 'force' ? '没有可分析的书签' : '没有未分类的书签');
       return;
     }
 

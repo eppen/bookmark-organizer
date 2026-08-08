@@ -1,4 +1,22 @@
+function isCheckableUrl(url) {
+  try {
+    const protocol = new URL(url).protocol;
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 async function checkOne(url, timeoutMs) {
+  if (!isCheckableUrl(url)) {
+    return {
+      status: 'uncertain',
+      code: 0,
+      finalUrl: url,
+      reason: '非 http(s) 链接（如 chrome://），跳过检测'
+    };
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
