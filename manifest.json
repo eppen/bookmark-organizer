@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "书签整理",
+  "version": "1.0.0",
+  "description": "独立管理页：查重合并、规则/AI 分类、失效检测、树形拖拽与导入导出",
+  "permissions": ["bookmarks", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "书签整理",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

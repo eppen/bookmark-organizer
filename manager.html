@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>书签整理</title>
+  <link rel="stylesheet" href="css/manager.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="toolbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>书签整理</h1>
+      </div>
+      <div class="search-wrap">
+        <input id="searchInput" type="search" placeholder="搜索标题或 URL…" autocomplete="off" />
+        <span id="searchCount" class="search-count"></span>
+      </div>
+      <nav class="actions" aria-label="功能">
+        <button type="button" data-panel="dedupe">查重</button>
+        <button type="button" data-panel="rules">规则分类</button>
+        <button type="button" data-panel="ai">AI 分类</button>
+        <button type="button" data-panel="linkcheck">失效检测</button>
+        <button type="button" data-panel="importexport">导入导出</button>
+        <button type="button" data-panel="settings">设置</button>
+      </nav>
+    </header>
+
+    <div class="main">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <span>书签树</span>
+          <div class="sidebar-actions">
+            <button type="button" id="btnRefresh" title="刷新">刷新</button>
+            <button type="button" id="btnNewFolder" title="在选中文件夹下新建">新建文件夹</button>
+          </div>
+        </div>
+        <div id="tree" class="tree" tabindex="0"></div>
+      </aside>
+
+      <section class="workspace">
+        <div id="panel-home" class="panel active">
+          <h2>工作区</h2>
+          <p class="muted">从顶部选择功能，或在左侧书签树上右键操作。危险操作都会先预览再确认。</p>
+          <ul class="hint-list">
+            <li>拖拽节点可移动书签/文件夹</li>
+            <li>双击节点可重命名</li>
+            <li>右键：新建、重命名、删除、在此检测</li>
+          </ul>
+        </div>
+
+        <div id="panel-dedupe" class="panel"></div>
+        <div id="panel-rules" class="panel"></div>
+        <div id="panel-ai" class="panel"></div>
+        <div id="panel-linkcheck" class="panel"></div>
+        <div id="panel-importexport" class="panel"></div>
+        <div id="panel-settings" class="panel"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="contextMenu" class="context-menu hidden" role="menu"></div>
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
